@@ -14,12 +14,10 @@
     "dev": "concurrently \"npm run dev --workspace=xconfess-backend\" \"npm run dev --workspace=xconfess-frontend\"",
     "dev:backend": "npm run dev --workspace=xconfess-backend",
     "dev:frontend": "npm run dev --workspace=xconfess-frontend",
-
     "backend:build": "npm run build --workspace=xconfess-backend",
     "backend:test": "npm run test --workspace=xconfess-backend",
     "backend:test:e2e": "npm run test:e2e --workspace=xconfess-backend",
     "backend:lint": "npm run lint --workspace=xconfess-backend",
-
     "contract:build": "npm run build --workspace=xconfess-contract",
     "contract:build:release": "npm run build:release --workspace=xconfess-contract",
     "contract:test": "npm run test --workspace=xconfess-contract",
@@ -29,7 +27,6 @@
     "contract:fmt:check": "npm run fmt:check --workspace=xconfess-contract",
     "contract:clean": "npm run clean --workspace=xconfess-contract",
     "contract:deploy:testnet": "npm run deploy:testnet --workspace=xconfess-contract",
-
     "build": "npm run backend:build && npm run contract:build:release",
     "test": "npm run backend:test && npm run contract:test",
     "lint": "npm run backend:lint && npm run contract:lint",
@@ -48,6 +45,7 @@
     "@stellar/stellar-sdk": "^14.4.3",
     "express": "^5.1.0",
     "ioredis": "^5.6.1",
+    "minimatch": "^10.2.4",
     "sanitize-html": "^2.17.0",
     "typeorm": "^0.3.25"
   },

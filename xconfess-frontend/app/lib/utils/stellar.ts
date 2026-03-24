@@ -130,7 +130,7 @@ export async function anchorConfession(
     const status = submitResponse.status as string;
 
     if (status === "ERROR") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const errorDetails =
         submitResponse.errorResultXdr ||
         submitResponse.errorResult ||
@@ -140,7 +140,7 @@ export async function anchorConfession(
     }
 
     if (status === "DUPLICATE") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const errorDetails =
         submitResponse.errorResultXdr ||
         submitResponse.errorResult ||
@@ -162,7 +162,7 @@ export async function anchorConfession(
       }
     } else if (status !== "SUCCESS" && status !== "ACCEPTED") {
       if (!submitResponse.hash) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         const errorDetails =
           submitResponse.errorResultXdr ||
           submitResponse.errorResult ||
