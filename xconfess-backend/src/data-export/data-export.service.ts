@@ -10,7 +10,12 @@ import { Queue } from 'bull';
 import { ExportRequest } from './entities/export-request.entity';
 import { AuditLogService } from '../audit-log/audit-log.service';
 
-export type ExportHistoryStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED' | 'EXPIRED';
+export type ExportHistoryStatus =
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'READY'
+  | 'FAILED'
+  | 'EXPIRED';
 
 export interface ExportHistoryItem {
   id: string;
@@ -30,7 +35,7 @@ export class DataExportService {
     @InjectQueue('export-queue') private exportQueue: Queue,
     private readonly configService: ConfigService,
     @Optional() private readonly auditLogService?: AuditLogService,
-  ) { }
+  ) {}
 
   async requestExport(userId: string) {
     // 1. Rate Limit Check: Find any request created in the last 7 days
@@ -40,7 +45,7 @@ export class DataExportService {
     const recentRequest = await this.exportRepository.findOne({
       where: {
         userId,
-        createdAt: MoreThan(sevenDaysAgo)
+        createdAt: MoreThan(sevenDaysAgo),
       },
     });
 
@@ -66,12 +71,11 @@ export class DataExportService {
     // 3. Kick off Bull queue
     await this.exportQueue.add('process-export', {
       userId,
-      requestId: request.id
+      requestId: request.id,
     });
 
     return { requestId: request.id, status: 'PENDING' };
   }
-
 
   generateSignedDownloadUrl(requestId: string, userId: string): string {
     const expires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours from now
@@ -153,7 +157,9 @@ export class DataExportService {
     return new Date(createdAt).getTime() + 24 * 60 * 60 * 1000;
   }
 
-  private isDownloadStillValid(request: Pick<ExportRequest, 'status' | 'createdAt'>): boolean {
+  private isDownloadStillValid(
+    request: Pick<ExportRequest, 'status' | 'createdAt'>,
+  ): boolean {
     if (request.status !== 'READY') {
       return false;
     }
@@ -161,8 +167,13 @@ export class DataExportService {
     return Date.now() <= this.getExpiryTimestamp(request.createdAt);
   }
 
-  private toHistoryItem(request: Pick<ExportRequest, 'id' | 'status' | 'createdAt' | 'userId'>): ExportHistoryItem {
-    const expiresAt = request.status === 'READY' ? this.getExpiryTimestamp(request.createdAt) : null;
+  private toHistoryItem(
+    request: Pick<ExportRequest, 'id' | 'status' | 'createdAt' | 'userId'>,
+  ): ExportHistoryItem {
+    const expiresAt =
+      request.status === 'READY'
+        ? this.getExpiryTimestamp(request.createdAt)
+        : null;
     const canRedownload = this.isDownloadStillValid(request);
     const normalizedStatus: ExportHistoryStatus =
       request.status === 'READY' && !canRedownload
@@ -176,11 +187,16 @@ export class DataExportService {
       expiresAt,
       canRedownload,
       canRequestNewLink: normalizedStatus === 'EXPIRED',
-      downloadUrl: canRedownload ? this.generateSignedDownloadUrl(request.id, request.userId) : null,
+      downloadUrl: canRedownload
+        ? this.generateSignedDownloadUrl(request.id, request.userId)
+        : null,
     };
   }
 
-  async getExportHistory(userId: string, limit = 20): Promise<ExportHistoryItem[]> {
+  async getExportHistory(
+    userId: string,
+    limit = 20,
+  ): Promise<ExportHistoryItem[]> {
     const requests = await this.exportRepository.find({
       where: { userId },
       order: { createdAt: 'DESC' },
@@ -201,17 +217,24 @@ export class DataExportService {
     return latestRequest ? this.toHistoryItem(latestRequest) : null;
   }
 
-  async getRedownloadLink(requestId: string, userId: string): Promise<{ downloadUrl: string }> {
+  async getRedownloadLink(
+    requestId: string,
+    userId: string,
+  ): Promise<{ downloadUrl: string }> {
     const request = await this.exportRepository.findOne({
       where: { id: requestId, userId },
       select: ['id', 'status', 'createdAt', 'userId'],
     });
 
     if (!request || !this.isDownloadStillValid(request)) {
-      throw new BadRequestException('Secure download link is no longer available. Request a new export.');
+      throw new BadRequestException(
+        'Secure download link is no longer available. Request a new export.',
+      );
     }
 
-    return { downloadUrl: this.generateSignedDownloadUrl(request.id, request.userId) };
+    return {
+      downloadUrl: this.generateSignedDownloadUrl(request.id, request.userId),
+    };
   }
 
   async compileUserData(userId: string): Promise<any> {
@@ -226,8 +249,7 @@ export class DataExportService {
   convertToCsv(data: any[]): string {
     if (!data || data.length === 0) return '';
     const headers = Object.keys(data[0]).join(',');
-    const rows = data.map(obj => Object.values(obj).join(',')).join('\n');
+    const rows = data.map((obj) => Object.values(obj).join(',')).join('\n');
     return `${headers}\n${rows}`;
   }
-
 }
